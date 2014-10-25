@@ -252,7 +252,7 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
                 scene = new THREE.Scene();
 
                 var i, line, vertex1, vertex2, material, p,
-                    parameters = [ [ 0.25, 0xff7700, 1, 2 ], [ 0.5, 0xff9900, 1, 1 ], [ 0.75, 0xffaa00, 0.75, 1 ], [ 1, 0xffaa00, 0.5, 1 ], [ 1.25, 0x000833, 0.8, 1 ],
+                    parameters = [ [ 0.25, 0x0000ee, 1, 2 ], [ 0.5, 0x00ff00, 1, 1 ], [ 0.75, 0xffff00, 0.75, 1 ], [ 1, 0xff8800, 0.5, 1 ], [ 1.25, 0xff0000, 0.8, 1 ],
                                    [ 3.0, 0xaaaaaa, 0.75, 2 ], [ 3.5, 0xffffff, 0.5, 1 ], [ 4.5, 0xffffff, 0.25, 1 ], [ 5.5, 0xffffff, 0.125, 1 ] ],
 
                     geometry = new THREE.Geometry();
