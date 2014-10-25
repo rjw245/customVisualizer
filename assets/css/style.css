@@ -2,8 +2,16 @@
     font-size: 54px;
     color: white;
     text-align: center;
-
+     z-index: 2;
+    margin-bottom: -5px;
 }
 #btn{
     background-color: gray;
+    z-index: 1;
+}
+header{
+    background-color:black;
+}
+body{
+    z-index: 5;
 }
