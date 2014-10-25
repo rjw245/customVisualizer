@@ -54,6 +54,7 @@ function init() {
 
         remixer.remixTrackById(trackID, trackURL, function(t, percent) {
             track = t;
+			console.log(t);
 
             $("#info").text(percent + "% of the track loaded");
             if (percent == 100) {
