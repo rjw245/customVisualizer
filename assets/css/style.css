@@ -3,7 +3,7 @@
     color: white;
     text-align: center;
      z-index: 2;
-    margin-bottom: -5px;
+    margin-bottom: 0px;
 }
 #btn{
     background-color: gray;
@@ -14,4 +14,7 @@ header{
 }
 body{
     z-index: 5;
+}
+#center{
+    text-align: center;
 }
