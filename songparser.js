@@ -194,7 +194,7 @@ function init() {
 
 window.onload = init;
 
-function startVisualizer(beats){
+function initVisualizer(beats){
 	$("#info").text("Visualizing");
 	console.log("Starting visualizer, passing it song beats");
 	player.play(0,beats);
@@ -222,5 +222,6 @@ function startVisualizer(beats){
 		
 		beatsFormatted.push(beatFormatted)
 	}
-	newBeats(startTimes,startAmps)
+	newBeats(durations,startAmps);
+	startVisualizer();
 }
