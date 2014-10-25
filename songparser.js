@@ -86,7 +86,6 @@ function init() {
         // We just uploaded a track.
         // We need to log the trackID and the URL, and then redirect.
         $("#select-track").hide();
-        $("#play-remix").hide();
         $("#info").text("Analyzing audio...");
         trackURL = 'http://' + params['bucket'] + '/' + urldecode(params['key']);
 
@@ -136,10 +135,6 @@ function init() {
                     if (track.status == 'ok') {
                         $("#info").text("Ready to start visualizer!");
 						$("#startbutton").prop("disabled",false);
-                        $('#beginRemix').removeAttr('disabled');
-                        wavesurfer.loadBuffer(track.analysis.beats);
-
-                        $('.btn-original').removeAttr('disabled');
                     }
                     else if (track.status == 'error' ) {
                         $("#info").text("Error getting the track URL - please try again, or re-upload the file.");
@@ -391,6 +386,16 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 			
 			var rotation = 0;
 			
+			var volatility = 0.9;
+			
+			var rotInc = 0.005;
+			function setParam(id,val){
+				console.log("Param set");
+				volatility = $("#volatility").val()/5;
+				rotInc = $("#rotspeed").val()/1000;
+				console.log(id);
+			}
+			
             function render() {
                 
                 t++;
@@ -399,11 +404,10 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
                 renderer.render( scene, camera );
 
-                rotation = rotation + .005;
+                rotation = rotation + rotInc;
 
                 // console.log(time);
                 for ( var i = 0; i < scene.children.length; i ++ ) {
-                    console.log(index);
 
                     var object = scene.children[ i ];
 
@@ -411,7 +415,8 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
                         object.rotation.y = rotation * ( i < 4 ? ( i + 1 ) : - ( i + 1 ) );
 
-                        if ( i < 5 ) object.scale.x = object.scale.y = object.scale.z = object.originalScale * 0.9 *(i/5+1) * (1 + 0.5 * Math.sin(2*3.14*t/(60*beatDur[index]))*(-.05*sAmps[index]+.2));
+                        if ( i < 5 ) object.scale.x = object.scale.y = object.scale.z = object.originalScale * volatility *(i/5+1) *
+							(1 + 0.5 * Math.sin(2*3.14*t/(60*beatDur[index]))*(-.05*sAmps[index]+.2));
 
                     }
 

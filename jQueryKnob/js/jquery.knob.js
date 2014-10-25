@@ -19,6 +19,7 @@
                     release : function (value) {
                         //console.log(this.$.attr('value'));
                         console.log("release : " + value);
+						setParam($(this).attr('id'),value);
                     },
                     cancel : function () {
                         console.log("cancel : ", this);

@@ -30,6 +30,13 @@
 <script type="text/javascript" async="" src="http://www.google-analytics.com/ga.js"></script>
 <!-- THREE Script -->
 
+<script type="text/javascript">
+	$(function($){
+		$("#pointsize").knob.release = function(value){
+			setVolatility(value);
+		}
+	});
+</script>
 </head>
 <header >
     <!-- MAIN TITLE -->
@@ -81,10 +88,12 @@ Custom Viz
       <!-- Options Space -->
       <div class="modal-body">
 
-        <div style="display:inline;width:200px;height:200px;"><canvas width="75" height="75px"></canvas><input id="speed of rotation" class="knob" data-width="200" data-min="0" data-displayprevious="true" value="44" style="width: 66px; height: 66px; position: absolute; vertical-align: middle; margin-top: 66px; margin-left: -152px; border: 0px; font-weight: bold; font-style: normal; font-variant: normal; font-stretch: normal; font-size: 30px; line-height: normal; font-family: Arial; text-align: center; color: rgb(135, 206, 235); padding: 0px; -webkit-appearance: none; background: none;">Rotation</div>
+        <div style="display:inline;width:200px;height:200px;"><canvas width="75" height="75px"></canvas><input id="rotspeed" class="knob" data-width="200" data-min="0" data-max="25" data-displayprevious="true" value="5" style="width: 66px; height: 66px; position: absolute; vertical-align: middle; margin-top: 66px; margin-left: -152px; border: 0px; font-weight: bold; font-style: normal; font-variant: normal; font-stretch: normal; font-size: 30px; line-height: normal; font-family: Arial; text-align: center; color: rgb(135, 206, 235); padding: 0px; -webkit-appearance: none; background: none;">Rotation</div>
 
-        <div style="display:inline;width:200px;height:200px;"><canvas width="75" height="75px"></canvas><input id="Size of Points" class="knob" data-width="200" data-max="20" data-displayprevious="true" value="44" style="width:66px; height: 66px; position: absolute; vertical-align: middle; margin-top: 66px; margin-left: -50px; border: 0px; font-weight: bold; font-style: normal; font-variant: normal; font-stretch: normal; font-size: 30px; line-height: normal; font-family: Arial; text-align: center; color: rgb(135, 206, 235); padding: 0px; -webkit-appearance: none; background: none;">Point Size</div>
-    
+        <div style="display:inline;width:200px;height:200px;"><canvas width="75" height="75px"></canvas><input id="volatility" class="knob" data-width="200" data-min="0" data-max="25" data-displayprevious="true" value="5" style="width:66px; height: 66px; position: absolute; vertical-align: middle; margin-top: 66px; margin-left: -50px; border: 0px; font-weight: bold; font-style: normal; font-variant: normal; font-stretch: normal; font-size: 30px; line-height: normal; font-family: Arial; text-align: center; color: rgb(135, 206, 235); padding: 0px; -webkit-appearance: none; background: none;">Size</div>
+		
+		
+		
         <div style="clear:both"></div>
     </div>
         
