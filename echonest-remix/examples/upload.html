@@ -12,9 +12,8 @@
 <script type="text/javascript">
 
 // Remix with any track.
-// Uploads are supported by the Echo Nest's back-end servers.
-// You're welcome to uses these servers for non-commercial projects and hacks
-var apiKey = 'FILDTEOIK2HBORODV';
+// To build your own back-end, take a look at remix-server:  
+var apiKey = 'SWHCFHJA2PPHKX7A5';
 var trackID;
 var trackURL;
 
@@ -23,10 +22,40 @@ var player;
 var track;
 var remixed;
 
+var theCodeMirror;
+var wavesurfer;
+var remixedWaveSurfer;
+var fs;
+
+function beginRemix() {
+    $("#info").text("Remixing...");
+    var theCode = theCodeMirror.getValue();
+
+    try {
+        eval(theCode);
+    } catch(e) {
+      var err = new Error();
+      err.message = 'Error in remix code: ' + e.message;
+      $("#info").text(err.message );
+      throw err;
+    }
+    
+    remixedWavesurfer.loadBuffer(remixed);
+    // Only use the filesystem if we have access to it..
+    if (fs) {
+        remixer.saveRemixLocally(fs, remixed, function(saveURL) {
+            $('#downloadButton').html('<a href="' + saveURL + '" target="_blank">Download Remix</a>')
+        });
+    }
+
+    $('.btn-remixed').removeAttr('disabled');
+    $("#info").text("Remix complete!");
+}
+
 
 // Get an estimation of analysis time
 function fetchQinfo() {
-    var url = 'http://labs.echonest.com/Uploader/qinfo?callback=?'
+    var url = 'http://remix.echonest.com/Uploader/qinfo?callback=?'
     $.getJSON(url, {}, function(data) {
         $("#info").text("Estimated analysis time: " + Math.floor(data.estimated_wait * 1.2) + " seconds.");
     });
@@ -34,8 +63,8 @@ function fetchQinfo() {
 
 // Get the analysis, if it is ready
 function analyzeAudio(audio, tag, callback) {
-    var url = 'http://labs.echonest.com/Uploader/qanalyze?callback=?'
-    $.getJSON(url, { url:audio, tag:tag}, function(data) {
+    var url = 'http://remix.echonest.com/Uploader/qanalyze?callback=?'
+    $.getJSON(url, { url:audio, api_key:apiKey, tag:tag}, function(data) {
         if (data.status === 'done' || data.status === 'error') {
             callback(data);
         } else {
@@ -50,7 +79,7 @@ function init() {
     var contextFunction = window.webkitAudioContext || window.AudioContext;
     if (contextFunction === undefined) {
         $("#info").text("Sorry, this app needs advanced web audio. Your browser doesn't"
-            + " support it. Try the latest version of Chrome");
+            + " support it. Try the latest version of Chrome?");
     }
     // Read the URL query string to decide what to do
     var params = {};
@@ -75,16 +104,8 @@ function init() {
 
         analyzeAudio(trackURL, 'tag', function(data) {
             if (data.status === 'done') {
-                var urlXHR = getReference(data.trid, function(data) {
-                    var newUrl = location.protocol + "//" +  location.host + location.pathname + "?trid=" + data.trid;
-                    location.href = newUrl;
-                });
-                urlXHR.fail(function() {
-                    postReference(data.trid, trackURL, function(data) {
-                        var newUrl = location.protocol + "//" +  location.host + location.pathname + "?trid=" + data.trid;
-                        location.href = newUrl;
-                    });
-                });
+                var newUrl = location.protocol + "//" +  location.host + location.pathname + "?trid=" + data.trid;
+                location.href = newUrl;
             }
         });
     } 
@@ -96,84 +117,86 @@ function init() {
         $("#play-remix").show();
         $("#select-track").hide();
 
-        var urlXHR = getReference(trackID, function(data) {
-            trackURL = data.trackURL;
-            console.log("Ready to remix");
-            var context = new contextFunction();
-            var fs;
-            // Only use the filesystem if we have access to it.
-            if (window.File && window.FileReader && window.FileList && window.Blob && window.webkitRequestFileSystem) {
-                window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
-                window.requestFileSystem(window.TEMPORARY, 1024*1024, function(filesystem) {
-                    fs = filesystem;
-                }, fileErrorHandler);
-            }
+        var urlXHR = getProfile(trackID, function(data) {
+            trackURL = data.url;
 
-            var wavesurfer = Object.create(WaveSurfer);
-            wavesurfer.init({
-                canvas: document.querySelector('#waveCanvas'),
-                waveColor: '#888888',
-                progressColor: '#000000',
-                loadingColor: '#000000',
-                cursorColor: '#888888'
-            });
-            
-            var remixedWavesurfer = Object.create(WaveSurfer);
-            remixedWavesurfer.init({
-                canvas: document.querySelector('#RemixedWaveCanvas'),
-                waveColor: '#00ACEB',
-                progressColor: '#000000',
-                loadingColor: '#000000',
-                cursorColor: '#00ACEB'
-            });
-
-            remixer = createJRemixer(context, $, apiKey);
-            player = remixer.getPlayer();
-            $("#info").text("Loading analysis data...");
-
-            remixer.remixTrackById(trackID, trackURL, function(t, percent) {
-                track = t;
-
-                $("#info").text(percent + "% of the track loaded...");
-                if (percent == 100) {
-                    $("#info").text(percent + "% of the track loaded, remixing...");
+            if (data.status == true) {
+                console.log("Ready to remix");
+                var context = new contextFunction();
+                
+                // Only use the filesystem if we have access to it.
+                if (window.File && window.FileReader && window.FileList && window.Blob && window.webkitRequestFileSystem) {
+                    window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
+                    window.requestFileSystem(window.TEMPORARY, 1024*1024, function(filesystem) {
+                        fs = filesystem;
+                    }, fileErrorHandler);
                 }
 
-                if (track.status == 'ok') {
-                    wavesurfer.loadBuffer(track.analysis.beats);
+                remixer = createJRemixer(context, $, apiKey);
+                player = remixer.getPlayer();
 
-                    $('.btn-original').removeAttr('disabled');
-                    remixed = new Array();
-                    // Extract the first beat of every bar.
-                    var meter = parseInt(track.analysis.track.time_signature);
-                    for (var i=0; i < track.analysis.beats.length; i++) {
-                        if (i % meter == 0) {
-                            remixed.push(track.analysis.beats[i])
+                // Update the placeholder input string
+                var defaultText = 
+                   ['remixed = new Array();',
+                    'var meter = parseInt(track.analysis.track.time_signature);',
+                    'for (var i=0; i < track.analysis.beats.length; i++) {',
+                    '  if (i % meter == 0) {',
+                    '    remixed.push(track.analysis.beats[i]);', 
+                    '  }', 
+                    '}', 
+                   ].join('\n');
+                $("#userInput").text(defaultText);
+
+
+                $("#info").text("Loading analysis data...");
+                remixer.remixTrackById(trackID, trackURL, function(t, percent) {
+                    track = t;
+
+                    $("#info").text(percent + "% of the track loaded...");
+                    if (percent == 100) {
+                        $("#info").text(percent + "% of the track loaded, preparing...");
+                    }
+
+                    if (track.status == 'ok') {
+                        $("#info").text("Ready to remix!");
+                        $('#beginRemix').removeAttr('disabled');
+                        wavesurfer.loadBuffer(track.analysis.beats);
+
+                        $('.btn-original').removeAttr('disabled');
+                    }
+                    else if (track.status == 'error' ) {
+                        $("#info").text("Error getting the track URL - please try again, or re-upload the file.");
+                    }
+
+                });
+            }
+            else {
+                console.log("Track id error.");
+                $("#play-remix").hide();
+                $("#select-track").show();
+                $("#info").text("Error getting the track URL - please try again, or re-upload the file.");
+                $("#redirect-url").attr('value', document.URL);
+
+                $("#file").change( 
+                    function() {
+                        fetchQinfo();
+                        var filename = $("#file").val();
+                        if (endsWith(filename.toLowerCase(), ".mp3")) {
+                            $("#f-filename").attr('value', fixFileName(filename));
+                            $("#upload").removeAttr('disabled');
+                        } else {
+                            alert('Sorry, this app only supports MP3s');
+                            $("#upload").attr('disabled', 'disabled');
                         }
                     }
-                    $("#info").text("Remix complete!");
-
-                    remixedWavesurfer.loadBuffer(remixed);
-
-                    // Only use the filesystem if we have access to it.
-                    if (fs) {
-                        remixer.saveRemixLocally(fs, remixed, function(saveURL) {
-                            $('#downloadButton').html('<a href="' + saveURL + '" target="_blank">Download Remix</a>')
-                        });
-                    }
-                    $('.btn-remixed').removeAttr('disabled');
-                }
-            });
+                );
+                fetchSignature();
+            }
         });
-        urlXHR.error(function() {
-            $("#info").text("Error getting the track URL - please try again...");
-        });    
-
     } else {
         // We're waiting for the user to pick a track and upload it
         $("#play-remix").hide();
         $("#redirect-url").attr('value', document.URL);
-        $("#f-filename").attr('value', 'remix_audio/' + randomName() + '.mp3');
 
         $("#file").change( 
             function() {
@@ -199,18 +222,17 @@ window.onload = init;
 <section>
 <div id='select-track'>
     <form action="https://s3.amazonaws.com/static.echonest.com" method="post" enctype="multipart/form-data">
-      <input id='f-filename' type="hidden" name="key" value="remix_audio/${filename}">
-      <input id='f-key' type="hidden" name="AWSAccessKeyId" value="YOUR_AWS_ACCESS_KEY"> 
-      <input type="hidden" name="acl" value="public-read"> 
-      <input id='redirect-url' type="hidden" name="success_action_redirect"
-          value="YOUR_URL">
-      <input id='f-policy' type="hidden" name="policy" value="YOUR_POLICY_DOCUMENT_BASE64_ENCODED">
-      <input id='f-signature' type="hidden" name="signature" value="YOUR_CALCULATED_SIGNATURE">
-      <input type="hidden" name="Content-Type" value="audio/mpeg">
-      Select an <b>MP3</b> to upload : <input  id="file" name="file" type="file"> 
-      <br>
-      <input class="btn btn-primary btn-default" id='upload' type="submit" value="Upload MP3"> 
-    </form> 
+              <input id="f-filename" type="hidden" name="key" value="remix_audio/SWHCFHJA2PPHKX7A5/1414218095030/686.mp3">
+              <input id="f-key" type="hidden" name="AWSAccessKeyId" value="AKIAJRDFEY23UEVW42BQ"> 
+              <input type="hidden" name="acl" value="public-read"> 
+              <input id="redirect-url" type="hidden" name="success_action_redirect" value="http://echonest.github.io/remix/js/examples/sandbox.html">
+              <input id="f-policy" type="hidden" name="policy" value="eyJjb25kaXRpb25zIjogW3siYnVja2V0IjogInN0YXRpYy5lY2hvbmVzdC5jb20ifSwgWyJzdGFydHMtd2l0aCIsICIka2V5IiwgInJlbWl4X2F1ZGlvLyJdLCB7ImFjbCI6ICJwdWJsaWMtcmVhZCJ9LCBbInN0YXJ0cy13aXRoIiwgIiRzdWNjZXNzX2FjdGlvbl9yZWRpcmVjdCIsICJodHRwOi8vIl0sIFsic3RhcnRzLXdpdGgiLCAiJENvbnRlbnQtVHlwZSIsICJhdWRpby9tcGVnIl0sIFsiY29udGVudC1sZW5ndGgtcmFuZ2UiLCAwLCA0MDAwMDAwMF1dLCAiZXhwaXJhdGlvbiI6ICIyMDE0LTEwLTI1VDE2OjI2OjEzLjY0OTY5NVoifQ==">
+              <input id="f-signature" type="hidden" name="signature" value="qI3o9aKD8ZP58btAsQ88/KAn8lE=">
+              <input type="hidden" name="Content-Type" value="audio/mpeg">
+              Select an <b>MP3</b> to upload : <input id="file" name="file" type="file"> 
+              <br>
+              <input class="btn btn-primary btn-default" id="upload" type="submit" value="Upload MP3"> 
+            </form>
 </div>
 </section>
 
