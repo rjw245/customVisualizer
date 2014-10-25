@@ -121,7 +121,8 @@ function init() {
             trackURL = data.url;
 
             if (data.status == true) {
-                console.log("Ready to remix");
+				$("#startbutton").prop("disabled",true);
+                console.log("Loading...");
                 var context = new contextFunction();
                 
                 // Only use the filesystem if we have access to it.
@@ -135,20 +136,7 @@ function init() {
                 remixer = createJRemixer(context, $, apiKey);
                 player = remixer.getPlayer();
 
-                // Update the placeholder input string
-                var defaultText = 
-                   ['remixed = new Array();',
-                    'var meter = parseInt(track.analysis.track.time_signature);',
-                    'for (var i=0; i < track.analysis.beats.length; i++) {',
-                    '  if (i % meter == 0) {',
-                    '    remixed.push(track.analysis.beats[i]);', 
-                    '  }', 
-                    '}', 
-                   ].join('\n');
-                $("#userInput").text(defaultText);
-
-
-                $("#info").text("Loading analysis data...");
+                $("#info").text("Loading...");
                 remixer.remixTrackById(trackID, trackURL, function(t, percent) {
                     track = t;
 
@@ -158,7 +146,8 @@ function init() {
                     }
 
                     if (track.status == 'ok') {
-                        $("#info").text("Ready to remix!");
+                        $("#info").text("Ready to start visualizer!");
+						$("#startbutton").prop("disabled",false);
                         $('#beginRemix').removeAttr('disabled');
                         wavesurfer.loadBuffer(track.analysis.beats);
 
@@ -216,6 +205,22 @@ function init() {
 }
 
 window.onload = init;
+
+function startVisualizer(beats){
+	$("#info").text("Visualizing");
+	console.log("Starting visualizer, passing it song beats");
+	player.play(0,beats);
+	console.log(beats);
+	for (var i = 0; i < beats.length; i++){
+		var duration, startAmp, endAmp;
+		duration = beats[i].duration;
+		startAmp = beats[i].overlappingSegments[0].loudness_max;
+		lastSeg = beats[i].overlappingSegments.length-1
+		endAmp   = beats[i].overlappingSegments[lastSeg].loudness_max;
+		
+		//newBeat(duration, startAmp, endAmp);
+	}
+}
 </script>
 
 <div id="info"></div>
@@ -237,11 +242,7 @@ window.onload = init;
 </section>
 
 <section id='play-remix'>
-    <button class='btn btn-inverse btn-original' onClick="player.play(0, track.analysis.beats);">Play Original</button>
-    <button class='btn btn-original' onClick="player.stop()">Stop Original</button>
-
-    <button class='btn btn-inverse btn-remixed' onClick="player.play(0, remixed);">Play Remix</button>
-    <button class='btn btn-remixed' onClick="player.stop()">Stop Remix</button>
+    <button class='btn btn-inverse btn-original' id="startbutton" onClick="startVisualizer(track.analysis.beats);">Send</button>
 </section>
 </body>
 </html>
