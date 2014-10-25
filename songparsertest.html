@@ -211,13 +211,14 @@ function startVisualizer(beats){
 	player.play(0,beats);
 	console.log(beats);
 	for (var i = 0; i < beats.length; i++){
-		var duration, startAmp, endAmp;
+		var beatStartTime, duration, startAmp, endAmp;
 		duration = beats[i].duration;
 		startAmp = beats[i].overlappingSegments[0].loudness_max;
-		lastSeg = beats[i].overlappingSegments.length-1
+		lastSeg  = beats[i].overlappingSegments.length-1;
 		endAmp   = beats[i].overlappingSegments[lastSeg].loudness_max;
+		beatStartTime = beats[i].start;
 		
-		//newBeat(duration, startAmp, endAmp);
+		newBeat(beatStartTime, duration, startAmp, endAmp);
 	}
 }
 </script>
