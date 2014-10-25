@@ -1,79 +1,226 @@
-var apiKey = 'YBPYIRQITXEVUBCAZ';
 
-function getMetadata(trackTitle, trackArtist){
+// Remix with any track.
+// To build your own back-end, take a look at remix-server:  
+var apiKey = 'SWHCFHJA2PPHKX7A5';
+var trackID;
+var trackURL;
 
+var remixer;
+var player;
+var track;
+var remixed;
+
+var theCodeMirror;
+var wavesurfer;
+var remixedWaveSurfer;
+var fs;
+
+function beginRemix() {
+    $("#info").text("Remixing...");
+    var theCode = theCodeMirror.getValue();
+
+    try {
+        eval(theCode);
+    } catch(e) {
+      var err = new Error();
+      err.message = 'Error in remix code: ' + e.message;
+      $("#info").text(err.message );
+      throw err;
+    }
+    
+    remixedWavesurfer.loadBuffer(remixed);
+    // Only use the filesystem if we have access to it..
+    if (fs) {
+        remixer.saveRemixLocally(fs, remixed, function(saveURL) {
+            $('#downloadButton').html('<a href="' + saveURL + '" target="_blank">Download Remix</a>')
+        });
+    }
+
+    $('.btn-remixed').removeAttr('disabled');
+    $("#info").text("Remix complete!");
 }
 
-function getTrackData(trackURL,callbackFunc){
-	var context;
-	var trackBuffer;
+
+// Get an estimation of analysis time
+function fetchQinfo() {
+    var url = 'http://remix.echonest.com/Uploader/qinfo?callback=?'
+    $.getJSON(url, {}, function(data) {
+        $("#info").text("Estimated analysis time: " + Math.floor(data.estimated_wait * 1.2) + " seconds.");
+    });
+}
+
+// Get the analysis, if it is ready
+function analyzeAudio(audio, tag, callback) {
+    var url = 'http://remix.echonest.com/Uploader/qanalyze?callback=?'
+    $.getJSON(url, { url:audio, api_key:apiKey, tag:tag}, function(data) {
+        if (data.status === 'done' || data.status === 'error') {
+            callback(data);
+        } else {
+            $("#info").text(data.status + ' - ready in about ' + data.estimated_wait + ' secs. ');
+            setTimeout(function() { analyzeAudio(audio, tag, callback); }, 8000);
+        } 
+    });
+}
+
+
+function init() {
     var contextFunction = window.webkitAudioContext || window.AudioContext;
-	var trackID = 'TRCYWPQ139279B3308';
-	var remixed;
     if (contextFunction === undefined) {
         $("#info").text("Sorry, this app needs advanced web audio. Your browser doesn't"
             + " support it. Try the latest version of Chrome?");
-    } else {
-		var context = new contextFunction();
-		
-        var request = new XMLHttpRequest();
-        request.open('GET', trackURL, true);
-        request.responseType = 'arraybuffer';
-
-        request.onload = function() {
-        context.decodeAudioData(request.response, function(buffer) {
-            trackBuffer = buffer;
-        });
+    }
+    // Read the URL query string to decide what to do
+    var params = {};
+    var q = document.URL.split('?')[1];
+    if(q != undefined){
+        q = q.split('&');
+        for(var i = 0; i < q.length; i++){
+            var pv = q[i].split('=');
+            var p = pv[0];
+            var v = pv[1];
+            params[p] = v;
         }
-		request.send();
-		
-		remixer = createJRemixer(context, $, apiKey);
-        player = remixer.getPlayer();
-		
-		remixer.remixTrackById(trackID, trackURL, function(t, percent) {
-            track = t;
-			console.log(track.status);
-			
-            if (track.status == 'ok') {
-				callbackFunc(track);
+    }
+
+    if ('key' in params) {
+        // We just uploaded a track.
+        // We need to log the trackID and the URL, and then redirect.
+        $("#select-track").hide();
+        $("#play-remix").hide();
+        $("#info").text("Analyzing audio...");
+        trackURL = 'http://' + params['bucket'] + '/' + urldecode(params['key']);
+
+        analyzeAudio(trackURL, 'tag', function(data) {
+            if (data.status === 'done') {
+                var newUrl = location.protocol + "//" +  location.host + location.pathname + "?trid=" + data.trid;
+                location.href = newUrl;
             }
         });
+    } 
+
+    else if ('trid' in params) {
+        // We were passed a trackID directly in the url
+        // We can remix the track we get back!
+        trackID = params['trid'];
+        $("#play-remix").show();
+        $("#select-track").hide();
+
+        var urlXHR = getProfile(trackID, function(data) {
+            trackURL = data.url;
+
+            if (data.status == true) {
+				$("#startbutton").prop("disabled",true);
+                console.log("Loading...");
+                var context = new contextFunction();
+                
+                // Only use the filesystem if we have access to it.
+                if (window.File && window.FileReader && window.FileList && window.Blob && window.webkitRequestFileSystem) {
+                    window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
+                    window.requestFileSystem(window.TEMPORARY, 1024*1024, function(filesystem) {
+                        fs = filesystem;
+                    }, fileErrorHandler);
+                }
+
+                remixer = createJRemixer(context, $, apiKey);
+                player = remixer.getPlayer();
+
+                $("#info").text("Loading...");
+                remixer.remixTrackById(trackID, trackURL, function(t, percent) {
+                    track = t;
+
+                    $("#info").text(percent + "% of the track loaded...");
+                    if (percent == 100) {
+                        $("#info").text(percent + "% of the track loaded, preparing...");
+                    }
+
+                    if (track.status == 'ok') {
+                        $("#info").text("Ready to start visualizer!");
+						$("#startbutton").prop("disabled",false);
+                        $('#beginRemix').removeAttr('disabled');
+                        wavesurfer.loadBuffer(track.analysis.beats);
+
+                        $('.btn-original').removeAttr('disabled');
+                    }
+                    else if (track.status == 'error' ) {
+                        $("#info").text("Error getting the track URL - please try again, or re-upload the file.");
+                    }
+
+                });
+            }
+            else {
+                console.log("Track id error.");
+                $("#play-remix").hide();
+                $("#select-track").show();
+                $("#info").text("Error getting the track URL - please try again, or re-upload the file.");
+                $("#redirect-url").attr('value', document.URL);
+
+                $("#file").change( 
+                    function() {
+                        fetchQinfo();
+                        var filename = $("#file").val();
+                        if (endsWith(filename.toLowerCase(), ".mp3")) {
+                            $("#f-filename").attr('value', fixFileName(filename));
+                            $("#upload").removeAttr('disabled');
+                        } else {
+                            alert('Sorry, this app only supports MP3s');
+                            $("#upload").attr('disabled', 'disabled');
+                        }
+                    }
+                );
+                fetchSignature();
+            }
+        });
+    } else {
+        // We're waiting for the user to pick a track and upload it
+        $("#play-remix").hide();
+        $("#redirect-url").attr('value', document.URL);
+
+        $("#file").change( 
+            function() {
+                var filename = $("#file").val();
+                if (endsWith(filename.toLowerCase(), ".mp3")) {
+                    $("#f-filename").attr('value', fixFileName(filename));
+                    $("#upload").removeAttr('disabled');
+                } else {
+                    alert('Sorry, this app only supports MP3s');
+                    $("#upload").attr('disabled', 'disabled');
+                }
+            }
+        );
+        fetchSignature();
+        fetchQinfo();
     }
 }
 
-function playTrack(trackURL,callbackFunc){
-	var context;
-	var trackBuffer;
-    var contextFunction = window.webkitAudioContext || window.AudioContext;
-	var remixed;
-	var trackID = 'TRCYWPQ139279B3308';
-    if (contextFunction === undefined) {
-        $("#info").text("Sorry, this app needs advanced web audio. Your browser doesn't"
-            + " support it. Try the latest version of Chrome?");
-    } else {
-		var context = new contextFunction();
-		
-        var request = new XMLHttpRequest();
-        request.open('GET', trackURL, true);
-        request.responseType = 'arraybuffer';
+window.onload = init;
 
-        request.onload = function() {
-        context.decodeAudioData(request.response, function(buffer) {
-            trackBuffer = buffer;
-        });
-        }
-		request.send();
+function startVisualizer(beats){
+	$("#info").text("Visualizing");
+	console.log("Starting visualizer, passing it song beats");
+	player.play(0,beats);
+	console.log(beats);
+	startTimes = [];
+	durations  = [];
+	startAmps  = [];
+	endAmps    = [];
+	for (var i = 0; i < beats.length; i++){
+		durations.push(beats[i].duration);
+		startAmps.push(beats[i].overlappingSegments[0].loudness_max);
+		if(i < beats.length-1){
+			endAmps.push(beats[i+1].overlappingSegments[0].loudness_max);
+		} else {
+			endAmps.push(0);
+		}
+		startTimes.push(beats[i].start);
 		
-		remixer = createJRemixer(context, $, apiKey);
-        remixer.remixTrackById(trackID, trackURL, function(t, percent) {
-            track = t;
-			
-            if (track.status == 'ok') {
-                remixed = track.analysis.beats;
-				player.play(0, remixed);
-				callbackFunc();
-            }
-        });
+		beatFormatted = {
+			'start': beatStartTime,
+			'dur': duration,
+			'startAmp': startAmp,
+			'endAmp': endAmp
+		}
 		
-    }
+		beatsFormatted.push(beatFormatted)
+	}
+	newBeats(startTimes,startAmps)
 }

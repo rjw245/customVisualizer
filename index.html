@@ -11,6 +11,9 @@
 <!-- EchoNest Scripts -->
 <script type="text/javascript" src="echonest-remix/remix.js"></script>
 
+<!-- JS written by Riley -->
+<script type="text/javascript" src="songparser.js"></script>
+
 <!-- BootStrap -->
 <script src="bootstrap/js/bootstrap.min.js"></script>
 <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
@@ -26,6 +29,28 @@
 <div id="MainTitle">
 Custom Viz
 
+<!--Echonest Input-->
+<div id="info"></div>
+<section>
+<div id='select-track'>
+    <form action="https://s3.amazonaws.com/static.echonest.com" method="post" enctype="multipart/form-data">
+              <input id="f-filename" type="hidden" name="key" value="remix_audio/SWHCFHJA2PPHKX7A5/1414218095030/686.mp3">
+              <input id="f-key" type="hidden" name="AWSAccessKeyId" value="AKIAJRDFEY23UEVW42BQ"> 
+              <input type="hidden" name="acl" value="public-read"> 
+              <input id="redirect-url" type="hidden" name="success_action_redirect" value="http://echonest.github.io/remix/js/examples/sandbox.html">
+              <input id="f-policy" type="hidden" name="policy" value="eyJjb25kaXRpb25zIjogW3siYnVja2V0IjogInN0YXRpYy5lY2hvbmVzdC5jb20ifSwgWyJzdGFydHMtd2l0aCIsICIka2V5IiwgInJlbWl4X2F1ZGlvLyJdLCB7ImFjbCI6ICJwdWJsaWMtcmVhZCJ9LCBbInN0YXJ0cy13aXRoIiwgIiRzdWNjZXNzX2FjdGlvbl9yZWRpcmVjdCIsICJodHRwOi8vIl0sIFsic3RhcnRzLXdpdGgiLCAiJENvbnRlbnQtVHlwZSIsICJhdWRpby9tcGVnIl0sIFsiY29udGVudC1sZW5ndGgtcmFuZ2UiLCAwLCA0MDAwMDAwMF1dLCAiZXhwaXJhdGlvbiI6ICIyMDE0LTEwLTI1VDE2OjI2OjEzLjY0OTY5NVoifQ==">
+              <input id="f-signature" type="hidden" name="signature" value="qI3o9aKD8ZP58btAsQ88/KAn8lE=">
+              <input type="hidden" name="Content-Type" value="audio/mpeg">
+              Select an <b>MP3</b> to upload : <input id="file" name="file" type="file"> 
+              <br>
+              <input class="btn btn-primary btn-default" id="upload" type="submit" value="Upload MP3"> 
+            </form>
+</div>
+</section>
+
+<section id='play-remix'>
+    <button class='btn btn-inverse btn-original' id="startbutton" onClick="startVisualizer(track.analysis.beats);">Send</button>
+</section>
 <!-- Button trigger modal -->
 <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal" id="btn">
     Options
@@ -46,8 +71,6 @@ Custom Viz
       <!-- Options Space -->
       <div class="modal-body">
 
-   
-        
         <div style="display:inline;width:200px;height:200px;"><canvas width="75" height="75px"></canvas><input id="speed of rotation" class="knob" data-width="200" data-min="0" data-displayprevious="true" value="44" style="width: 66px; height: 66px; position: absolute; vertical-align: middle; margin-top: 66px; margin-left: -152px; border: 0px; font-weight: bold; font-style: normal; font-variant: normal; font-stretch: normal; font-size: 30px; line-height: normal; font-family: Arial; text-align: center; color: rgb(135, 206, 235); padding: 0px; -webkit-appearance: none; background: none;">Rotation</div>
 
         <div style="display:inline;width:200px;height:200px;"><canvas width="75" height="75px"></canvas><input id="Size of Points" class="knob" data-width="200" data-max="20" data-displayprevious="true" value="44" style="width:66px; height: 66px; position: absolute; vertical-align: middle; margin-top: 66px; margin-left: -50px; border: 0px; font-weight: bold; font-style: normal; font-variant: normal; font-stretch: normal; font-size: 30px; line-height: normal; font-family: Arial; text-align: center; color: rgb(135, 206, 235); padding: 0px; -webkit-appearance: none; background: none;">Point Size</div>
