@@ -12,11 +12,11 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
             camera, scene, renderer;
 
-            init();
-            animate();
-
-            function init() {
-
+            // startVisualizer();
+            
+            var time = Date.now();
+            function startVisualizer() {
+                
                 var container;
 
                 container = document.createElement( 'div' );
@@ -77,6 +77,7 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
                 //
 
                 window.addEventListener( 'resize', onWindowResize, false );
+                animate();
 
             }
 
@@ -126,15 +127,38 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
             }
 
             //
-
+            var index = 0; 
+             var beatDur = new Array();
+            var sAmps = new Array();
+            var i = 0;
             function animate() {
 
                 requestAnimationFrame( animate );
 
-                render();
+                // BEAT ARRY  
+
+                    render();
+
+    
+                if (i >= 60*beatDur[index]){
+
+                    i=0;
+                index++;
+                }
+
 
             }
 
+           
+            function newBeats(durations,startAmps){
+
+                beatDur = durations;
+                sAmps = startAmps;
+                console.log(beatDur);
+                console.log(startAmps);
+
+
+            }
             function render() {
                 
 
@@ -143,8 +167,9 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
                 renderer.render( scene, camera );
 
-                var time = Date.now() * 0.0001;
+                
 
+                // console.log(time);
                 for ( var i = 0; i < scene.children.length; i ++ ) {
 
                     var object = scene.children[ i ];
@@ -153,7 +178,7 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
                         object.rotation.y = time * ( i < 4 ? ( i + 1 ) : - ( i + 1 ) );
 
-                        if ( i < 5 ) object.scale.x = object.scale.y = object.scale.z = object.originalScale * (i/5+1) * (1 + 0.5 * Math.sin( 7*time ) )*Math.random()*2;
+                        if ( i < 5 ) object.scale.x = object.scale.y = object.scale.z = object.originalScale * (i/5+1) * (1 + 0.5 * Math.sin( 7*beatDur[index] ) )*sAmps[index];
 
                     }
 

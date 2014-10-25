@@ -11,6 +11,13 @@
 <!-- EchoNest Scripts -->
 <script type="text/javascript" src="echonest-remix/remix.js"></script>
 
+
+   <script src="three.js/build/three.min.js"></script>
+
+        <script src="three.js/examples/js/Detector.js"></script>
+        <script src="three.js/examples/js/libs/stats.min.js"></script>
+
+<!--<script src='sphere.js'> </script>-->
 <!-- JS written by Riley -->
 <script type="text/javascript" src="songparser.js"></script>
 
@@ -49,7 +56,7 @@ Custom Viz
 </section>
 
 <section id='play-remix'>
-    <button class='btn btn-inverse btn-original' id="startbutton" onClick="startVisualizer(track.analysis.beats);">Send</button>
+    <button class='btn btn-inverse btn-original' id="startbutton" onClick="initVisualizer(track.analysis.beats);">Send</button>
 </section>
 <!-- Button trigger modal -->
 <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal" id="btn">
@@ -93,12 +100,7 @@ Custom Viz
 <body>
 
 
-        <script src="three.js/build/three.min.js"></script>
-
-        <script src="three.js/examples/js/Detector.js"></script>
-        <script src="three.js/examples/js/libs/stats.min.js"></script>
-
-        <script src='sphere.js'> </script>
+     
     </body>
 
 
