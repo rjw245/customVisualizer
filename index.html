@@ -35,10 +35,11 @@
     <!-- MAIN TITLE -->
 <div id="MainTitle">
 Custom Viz
-
+</div>
 <!--Echonest Input-->
-<div id="info"></div>
-<section>
+<div id="center">
+<p id="info" style="font-size=20px;"></p>
+
 <div id='select-track'>
     <form action="https://s3.amazonaws.com/static.echonest.com" method="post" enctype="multipart/form-data">
               <input id="f-filename" type="hidden" name="key" value="remix_audio/SWHCFHJA2PPHKX7A5/1414218095030/686.mp3">
@@ -53,17 +54,18 @@ Custom Viz
               <input class="btn btn-primary btn-default" id="upload" type="submit" value="Upload MP3"> 
             </form>
 </div>
-</section>
+
 
 <section id='play-remix'>
-    <button class='btn btn-inverse btn-original' id="startbutton" onClick="initVisualizer(track.analysis.beats);">Send</button>
-</section>
-<!-- Button trigger modal -->
+    <button class="btn btn-primary btn-lg"  id="startbutton" onClick="initVisualizer(track.analysis.beats);">Play</button>
+    <!-- Button trigger modal -->
 <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal" id="btn">
     Options
 </button>
-</div> 
+</section>
 
+</div> 
+</div>
 
 </header>
 
