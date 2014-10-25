@@ -244,7 +244,6 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
             // startVisualizer();
             
-            var time = Date.now();
             function startVisualizer() {
                 
                 var container;
@@ -370,10 +369,10 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
                     render();
 
     
-                if (t >= 600*beatDur[index]){
+                if (t > 60*beatDur[index]){
 
                     t=0;
-                index++;
+					index++;
                 }
 
 
@@ -389,6 +388,9 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 
             }
+			
+			var time =  Date.now();
+			
             function render() {
                 
                 t++;
@@ -397,7 +399,7 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
                 renderer.render( scene, camera );
 
-                var time =  Date.now() *.0001;
+                
 
                 // console.log(time);
                 for ( var i = 0; i < scene.children.length; i ++ ) {
@@ -409,7 +411,7 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
                         object.rotation.y = time * ( i < 4 ? ( i + 1 ) : - ( i + 1 ) );
 
-                        if ( i < 5 ) object.scale.x = object.scale.y = object.scale.z = object.originalScale * (i/5+1) * (1 + 0.5 * Math.sin(2*3.14*beatDur[index]*(t/20 ))*-.05*sAmps[index];
+                        if ( i < 5 ) object.scale.x = object.scale.y = object.scale.z = object.originalScale * (i/5+1) * (1 + 0.5 * Math.sin(2*3.14*t/(60*beatDur[index]))*-.1*sAmps[index]);
 
                     }
 
