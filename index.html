@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+
+<!-- custom styles -->
+<link rel="stylesheet" href="assets/css/style.css">
+<!-- jquery -->
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<!-- EchoNest Scripts -->
+<script type="text/javascript" src="remix.js"></script>
+
+<!-- BootStrap -->
+<script src="bootstrap/dist/js/bootstrap.min.js"></script>
+<link href="bootstrap/dist/css/bootstrap.css" rel="stylesheet">
+<!-- knob --><script src="jQuery-Knob/dist/jquery.knob.min.js" type="text/javascript"></script>
+
+</head>
+<header>
+    <!-- MAIN TITLE -->
+<div id="MainTitle">
+Custom Viz
+
+<!-- Button trigger modal -->
+<button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal" id="btn">
+    Launch 
+</button>
+</div> 
+
+
+</header>
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="myModalLabel">Customizer</h4>
+      </div>
+      <!-- Options Space -->
+      <div class="modal-body">
+
+        <div style="display: inline; width: 200px; height: 200px;"><canvas width="200" height="200"></canvas><input class="knob" data-width="200" data-min="0" data-displayprevious="true" value="44" style="width: 104px; height: 66px; position: absolute; vertical-align: middle; margin-top: 66px; margin-left: -152px; border: 0px; font-weight: bold; font-style: normal; font-variant: normal; font-stretch: normal; font-size: 40px; line-height: normal; font-family: Arial; text-align: center; color: rgb(135, 206, 235); padding: 0px; -webkit-appearance: none; background: none;"> Spin Speed</div>
+
+
+
+
+        
+      </div>
+      <div class="modal-footer">
+        <!-- close button -->
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <!-- Upload Viz Options -->
+        <button type="button" class="btn btn-primary"  id="btn">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3d Viz stuff -->
+<body>
+
+</body>
+
+</html>
