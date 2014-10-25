@@ -416,7 +416,7 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
                         object.rotation.y = rotation * ( i < 4 ? ( i + 1 ) : - ( i + 1 ) );
 
                         if ( i < 5 ) object.scale.x = object.scale.y = object.scale.z = object.originalScale * volatility *(i/5+1) *
-							(1 + 0.5 * Math.sin(2*3.14*t/(60*beatDur[index]))*(-.05*sAmps[index]+.2));
+							(1 + 0.5 * (Math.sin(2*3.14*t/(60*beatDur[index])-3.14/2)+1)*(-.05*sAmps[index]+.2));
 
                     }
 
